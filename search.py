@@ -200,13 +200,14 @@ def breadthFirstSearch(problem):
     Search the shallowest nodes in the search tree first.
     [2nd Edition: p 73, 3rd Edition: p 82]
     """
+    print("BFS Called")
     from util import Queue
 
     queue = Queue()
     start = problem.getStartState()
 
     queue.push((start,[]))
-    visited = set()
+    visited = set([start])
 
     while queue:
         state, actions = queue.pop()
@@ -215,31 +216,87 @@ def breadthFirstSearch(problem):
             return actions
 
         for succ, action, stepCost in problem.getSuccessors(state):
-            if state not in visited:
-                visited.add(state)
+            if succ not in visited:
+                visited.add(succ)
                 queue.push((succ, actions + [action]))
 
     return []
-    # util.raiseNotDefined()
     # return search(problem, util.Queue())
-
 
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
-    return cost_search(problem)
 
+    from util import PriorityQueue
+
+    start = problem.getStartState()
+    frontier = PriorityQueue()
+
+    # each item: (state, actions_so_far, cost_so_far)
+    frontier.push((start, [], 0), 0)
+
+    visited = {}  # best known cost to reach each state
+    visited[start] = 0
+
+    while not frontier.isEmpty():
+        state, actions, cost = frontier.pop()
+
+        # If we popped a worse (outdated) entry, skip it
+        if cost > visited.get(state, float('inf')):
+            continue
+
+        if problem.isGoalState(state):
+            return actions
+
+        for succ, action, stepCost in problem.getSuccessors(state):
+            newCost = cost + stepCost
+            if newCost < visited.get(succ, float('inf')):
+                visited[succ] = newCost
+                frontier.push((succ, actions + [action], newCost), newCost)
+
+    return []
 
 def nullHeuristic(state, problem=None):
     """
     A heuristic function estimates the cost from the current state to the nearest
     goal in the provided SearchProblem.  This heuristic is trivial.
     """
+    
     return 0
 
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     "Search the node that has the lowest combined cost and heuristic first."
-    return cost_search(problem, heuristic)
+    from util import PriorityQueue
+
+    start = problem.getStartState()
+    frontier = PriorityQueue()
+
+    # Each frontier entry: (state, actions_so_far, g_cost_so_far)
+    start_h = heuristic(start, problem)
+    frontier.push((start, [], 0), 0 + start_h)
+
+    # best_g[state] = best (lowest) known cost from start to state
+    best_g = {start: 0}
+
+    while not frontier.isEmpty():
+        state, actions, g = frontier.pop()
+
+        # Skip outdated entries (we found a better way to this state already)
+        if g > best_g.get(state, float('inf')):
+            continue
+
+        if problem.isGoalState(state):
+            return actions
+
+        for succ, action, stepCost in problem.getSuccessors(state):
+            new_g = g + stepCost
+            if new_g < best_g.get(succ, float('inf')):
+                best_g[succ] = new_g
+                f = new_g + heuristic(succ, problem)
+                frontier.push((succ, actions + [action], new_g), f)
+
+    return []
+    # return cost_search(problem, heuristic)
 
 
 # Abbreviations
