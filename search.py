@@ -200,7 +200,6 @@ def breadthFirstSearch(problem):
     Search the shallowest nodes in the search tree first.
     [2nd Edition: p 73, 3rd Edition: p 82]
     """
-    print("BFS Called")
     from util import Queue
 
     queue = Queue()

@@ -339,28 +339,51 @@ class CornersProblem(search.SearchProblem):
     return len(actions)
 
 
+# def cornersHeuristic(state, problem):
+#   """
+#   A heuristic for the CornersProblem that you defined.
+
+#     state:   The current search state
+#              (a data structure you chose in your search problem)
+
+#     problem: The CornersProblem instance for this layout.
+
+#   This function should always return a number that is a lower bound
+#   on the shortest path from the state to a goal of the problem; i.e.
+#   it should be admissible (as well as consistent).
+#   """
+#   walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+#   location, corners = state
+#   if not corners:
+#     return 0
+#   total_distance = 0
+#   for _, p in sorted([(compute_blocked_distance(location, p, walls), p) for p in corners]):
+#     total_distance += compute_blocked_distance(location, p, walls)
+#     location = p
+#   return total_distance
+
+
+#
+# OUR IMPLEMENTATION OF cornersHeuristic, there already exists an implementation
+#
 def cornersHeuristic(state, problem):
-  """
-  A heuristic for the CornersProblem that you defined.
+    position, corners = state
 
-    state:   The current search state
-             (a data structure you chose in your search problem)
+    if not corners:
+        return 0
 
-    problem: The CornersProblem instance for this layout.
+    corners = list(corners)
+    total = 0
+    current = position
 
-  This function should always return a number that is a lower bound
-  on the shortest path from the state to a goal of the problem; i.e.
-  it should be admissible (as well as consistent).
-  """
-  walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
-  location, corners = state
-  if not corners:
-    return 0
-  total_distance = 0
-  for _, p in sorted([(compute_blocked_distance(location, p, walls), p) for p in corners]):
-    total_distance += compute_blocked_distance(location, p, walls)
-    location = p
-  return total_distance
+    while corners:
+        distances = [(util.manhattanDistance(current, corner), corner) for corner in corners]
+        dist, nearest = min(distances)
+        total += dist
+        current = nearest
+        corners.remove(nearest)
+
+    return total
 
 
 def compute_distance(a, b):
@@ -503,7 +526,13 @@ def foodHeuristic(state, problem):
   """
   position, foodGrid = state
   "*** YOUR CODE HERE ***"
-  return 0
+  foodList = foodGrid.asList()
+
+  if not foodList:
+    return 0
+
+  return max(util.manhattanDistance(position, food) for food in foodList)
+  # return 0
 
 class ClosestDotSearchAgent(SearchAgent):
   "Search for all food using a sequence of searches"
@@ -531,7 +560,8 @@ class ClosestDotSearchAgent(SearchAgent):
     problem = AnyFoodSearchProblem(gameState)
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return search.bfs(problem)
+    # util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
   """
@@ -567,7 +597,8 @@ class AnyFoodSearchProblem(PositionSearchProblem):
     x,y = state
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return self.food[x][y]
+    # util.raiseNotDefined()
 
 ##################
 # Mini-contest 1 #
